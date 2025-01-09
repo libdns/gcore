@@ -17,38 +17,38 @@ Here's a minimal example of how to get all DNS records for zone.
 package main
 
 import (
-.   "context"
-.   "fmt"
-.   "os"
-.   "path/filepath"
+    "context"
+    "fmt"
+    "os"
+    "path/filepath"
 
-.   gcore "git.mills.io/prologic/libdns-gcore"
+    gcore "git.mills.io/prologic/libdns-gcore"
 )
 
 func main() {
-.   apiKey := os.Getenv("GCORE_API_KEY")
-.   if apiKey == "" {
-.   .   fmt.Printf("GCORE_API_KEY not set\n")
-.   .   return
-.   }
+    apiKey := os.Getenv("GCORE_API_KEY")
+    if apiKey == "" {
+        fmt.Printf("GCORE_API_KEY not set\n")
+        return
+    }
 
-.   if len(os.Args) < 2 {
-.   .   fmt.Printf("Usage: %s <zone>\n", filepath.Base(os.Args[0]))
-.   .   os.Exit(1)
-.   }
+    if len(os.Args) < 2 {
+        fmt.Printf("Usage: %s <zone>\n", filepath.Base(os.Args[0]))
+        os.Exit(1)
+    }
 
-.   zone := os.Args[1]
+    zone := os.Args[1]
 
-.   provider := &gcore.Provider{
-.   .   APIKey: apiKey,
-.   }
+    provider := &gcore.Provider{
+        APIKey: apiKey,
+    }
 
-.   records, err := provider.GetRecords(context.Background(), zone)
-.   if err != nil {
-.   .   fmt.Printf("Error: %s", err.Error())
-.   .   return
-.   }
+    records, err := provider.GetRecords(context.Background(), zone)
+    if err != nil {
+        fmt.Printf("Error: %s", err.Error())
+        return
+    }
 
-.   fmt.Println(records)
+    fmt.Println(records)
 }
 ```
