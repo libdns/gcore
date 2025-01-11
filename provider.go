@@ -11,6 +11,38 @@ import (
 	"github.com/libdns/libdns"
 )
 
+// fixRecord ensures that a DNS record's name and value are fully qualified.
+// For the record name, if it is '@', it is replaced with the zone name.
+// If the name doesn't end with a '.', it appends the zone name appropriately.
+// For CNAME records, it ensures the value ends with a '.'.
+
+func fixRecord(record libdns.Record, zone string) libdns.Record {
+	newRecord := libdns.Record{
+		Name:  record.Name,
+		Type:  record.Type,
+		TTL:   record.TTL,
+		Value: record.Value,
+	}
+
+	if newRecord.Name == "@" {
+		newRecord.Name = zone
+	}
+
+	if !strings.HasSuffix(newRecord.Name, ".") {
+		if strings.HasSuffix(newRecord.Name, zone) {
+			newRecord.Name += "."
+		} else {
+			newRecord.Name += "." + zone
+		}
+	}
+
+	if newRecord.Type == "CNAME" && !strings.HasSuffix(newRecord.Value, ".") {
+		newRecord.Value += "."
+	}
+
+	return newRecord
+}
+
 // Provider facilitates DNS record manipulation with GCore DNS.
 type Provider struct {
 	APIKey string `json:"api_key,omitempty"`
@@ -52,19 +84,8 @@ func (p *Provider) AppendRecords(ctx context.Context, zone string, records []lib
 	// Validate records...
 	// All records names must be fully qualified
 	// CNAME records values must be fully qualified
-	for _, record := range records {
-		if record.Name == "@" {
-			record.Name = zone
-			continue
-		}
-
-		if !strings.HasSuffix(record.Name, "."+zone) {
-			record.Name += "." + zone
-		}
-
-		if record.Type == "CNAME" && !strings.HasSuffix(record.Value, ".") {
-			record.Value += "."
-		}
+	for i, record := range records {
+		records[i] = fixRecord(record, zone)
 	}
 
 	recordsByType := make(map[string][]libdns.Record)

@@ -30,6 +30,8 @@ func main() {
 		APIKey: apiKey,
 	}
 
+	// Get all records
+
 	records, err := provider.GetRecords(context.Background(), zone)
 	if err != nil {
 		fmt.Printf("Error: %s", err.Error())
@@ -39,9 +41,11 @@ func main() {
 		fmt.Printf("%s %s %s\n", record.Name, record.Type, record.Value)
 	}
 
+	// Append a record
+
 	records, err = provider.AppendRecords(context.Background(), zone, []libdns.Record{
 		{
-			Name:  "0xffs.xyz",
+			Name:  "_acme-challenge",
 			Type:  "TXT",
 			TTL:   300,
 			Value: "Hello World!",
@@ -54,6 +58,8 @@ func main() {
 
 	time.Sleep(1)
 
+	// Get all records
+
 	records, err = provider.GetRecords(context.Background(), zone)
 	if err != nil {
 		fmt.Printf("Error: %s", err.Error())
@@ -65,9 +71,11 @@ func main() {
 
 	time.Sleep(1)
 
+	// Delete a record
+
 	records, err = provider.DeleteRecords(context.Background(), zone, []libdns.Record{
 		{
-			Name:  "0xffs.xyz",
+			Name:  "_acme-challenge",
 			Type:  "TXT",
 			Value: "Hello World!",
 		},
@@ -78,6 +86,8 @@ func main() {
 	}
 
 	time.Sleep(1)
+
+	// Get all records
 
 	records, err = provider.GetRecords(context.Background(), zone)
 	if err != nil {
