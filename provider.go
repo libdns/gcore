@@ -11,36 +11,28 @@ import (
 	"github.com/libdns/libdns"
 )
 
-// fixRecord ensures that a DNS record's name and value are fully qualified.
-// For the record name, if it is '@', it is replaced with the zone name.
-// If the name doesn't end with a '.', it appends the zone name appropriately.
-// For CNAME records, it ensures the value ends with a '.'.
-
-func fixRecord(record libdns.Record, zone string) libdns.Record {
-	newRecord := libdns.Record{
-		Name:  record.Name,
+// qualityRecordNames takes a libdns.Record and a zone, and returns a new record with a name that is fully qualified
+// (i.e. it includes the zone name). If the record name does not end with the zone name and a '.', the zone name and '.'
+// are appended to the record name. Otherwise the record name is left unchanged.
+func qualityRecordNames(record libdns.Record, zone string) libdns.Record {
+	return libdns.Record{
+		Name:  libdns.AbsoluteName(record.Name, zone),
 		Type:  record.Type,
 		TTL:   record.TTL,
 		Value: record.Value,
 	}
+}
 
-	if newRecord.Name == "@" {
-		newRecord.Name = zone
+// unqualifyRecordNames takes a libdns.Record and a zone, and returns a new record with a name that is unqualified
+// (i.e. it does not include the zone name). If the record name ends with the zone name and a '.', it is replaced with
+// an empty string. Otherwise the record name is left unchanged.
+func unqualifyRecordNames(record libdns.Record, zone string) libdns.Record {
+	return libdns.Record{
+		Name:  libdns.RelativeName(record.Name, zone),
+		Type:  record.Type,
+		TTL:   record.TTL,
+		Value: record.Value,
 	}
-
-	if !strings.HasSuffix(newRecord.Name, ".") {
-		if strings.HasSuffix(newRecord.Name, zone) {
-			newRecord.Name += "."
-		} else {
-			newRecord.Name += "." + zone
-		}
-	}
-
-	if newRecord.Type == "CNAME" && !strings.HasSuffix(newRecord.Value, ".") {
-		newRecord.Value += "."
-	}
-
-	return newRecord
 }
 
 // Provider facilitates DNS record manipulation with GCore DNS.
@@ -74,6 +66,11 @@ func (p *Provider) GetRecords(ctx context.Context, zone string) ([]libdns.Record
 		}
 	}
 
+	// For some reason libdns Record.Name(s) must be partially qualified...
+	for i, record := range records {
+		records[i] = unqualifyRecordNames(record, zone)
+	}
+
 	return records, nil
 }
 
@@ -81,11 +78,8 @@ func (p *Provider) GetRecords(ctx context.Context, zone string) ([]libdns.Record
 func (p *Provider) AppendRecords(ctx context.Context, zone string, records []libdns.Record) ([]libdns.Record, error) {
 	cli := gcoreSDK.NewClient(gcoreSDK.PermanentAPIKeyAuth(p.APIKey))
 
-	// Validate records...
-	// All records names must be fully qualified
-	// CNAME records values must be fully qualified
 	for i, record := range records {
-		records[i] = fixRecord(record, zone)
+		records[i] = qualityRecordNames(record, zone)
 	}
 
 	recordsByType := make(map[string][]libdns.Record)
@@ -145,6 +139,10 @@ func (p *Provider) AppendRecords(ctx context.Context, zone string, records []lib
 func (p *Provider) SetRecords(ctx context.Context, zone string, records []libdns.Record) ([]libdns.Record, error) {
 	cli := gcoreSDK.NewClient(gcoreSDK.PermanentAPIKeyAuth(p.APIKey))
 
+	for i, record := range records {
+		records[i] = qualityRecordNames(record, zone)
+	}
+
 	var updatedRecords []libdns.Record
 
 	for _, record := range records {
@@ -177,6 +175,10 @@ func (p *Provider) SetRecords(ctx context.Context, zone string, records []libdns
 // DeleteRecords deletes the records from the zone. It returns the records that were deleted.
 func (p *Provider) DeleteRecords(ctx context.Context, zone string, records []libdns.Record) ([]libdns.Record, error) {
 	cli := gcoreSDK.NewClient(gcoreSDK.PermanentAPIKeyAuth(p.APIKey))
+
+	for i, record := range records {
+		records[i] = qualityRecordNames(record, zone)
+	}
 
 	var deletedRecords []libdns.Record
 
