@@ -4,6 +4,7 @@ package gcore
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	gcoreSDK "github.com/G-Core/gcore-dns-sdk-go"
@@ -59,6 +60,23 @@ func (p *Provider) AppendRecords(ctx context.Context, zone string, records []lib
 		for _, record := range records {
 			rrSet, err := cli.RRSet(ctx, zone, record.Name, recordType)
 			if err != nil {
+				if strings.Contains(err.Error(), "404: record is not found") {
+					rrSet = gcoreSDK.RRSet{
+						Type: recordType,
+						TTL:  int(record.TTL.Seconds()),
+						Records: []gcoreSDK.ResourceRecord{
+							{
+								Content: []any{record.Value},
+								Enabled: true,
+							},
+						},
+					}
+					if err := cli.UpdateRRSet(ctx, zone, record.Name, recordType, rrSet); err != nil {
+						return nil, err
+					}
+					addedRecords = append(addedRecords, record)
+					continue
+				}
 				return nil, err
 			}
 
@@ -76,7 +94,6 @@ func (p *Provider) AppendRecords(ctx context.Context, zone string, records []lib
 			if err := cli.UpdateRRSet(ctx, zone, record.Name, recordType, rrSet); err != nil {
 				return nil, err
 			}
-
 			addedRecords = append(addedRecords, record)
 		}
 	}
