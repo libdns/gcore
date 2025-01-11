@@ -66,7 +66,6 @@ func (p *Provider) GetRecords(ctx context.Context, zone string) ([]libdns.Record
 		}
 	}
 
-	// For some reason libdns Record.Name(s) must be partially qualified...
 	for i, record := range records {
 		records[i] = unqualifyRecordNames(record, zone)
 	}
@@ -131,6 +130,10 @@ func (p *Provider) AppendRecords(ctx context.Context, zone string, records []lib
 		}
 	}
 
+	for i, record := range addedRecords {
+		addedRecords[i] = unqualifyRecordNames(record, zone)
+	}
+
 	return addedRecords, nil
 }
 
@@ -169,6 +172,10 @@ func (p *Provider) SetRecords(ctx context.Context, zone string, records []libdns
 		updatedRecords = append(updatedRecords, record)
 	}
 
+	for i, record := range updatedRecords {
+		updatedRecords[i] = unqualifyRecordNames(record, zone)
+	}
+
 	return updatedRecords, nil
 }
 
@@ -187,6 +194,10 @@ func (p *Provider) DeleteRecords(ctx context.Context, zone string, records []lib
 			return nil, fmt.Errorf("failed to delete record %v", record)
 		}
 		deletedRecords = append(deletedRecords, record)
+	}
+
+	for i, record := range deletedRecords {
+		deletedRecords[i] = unqualifyRecordNames(record, zone)
 	}
 
 	return deletedRecords, nil
