@@ -49,6 +49,24 @@ func (p *Provider) GetRecords(ctx context.Context, zone string) ([]libdns.Record
 func (p *Provider) AppendRecords(ctx context.Context, zone string, records []libdns.Record) ([]libdns.Record, error) {
 	cli := gcoreSDK.NewClient(gcoreSDK.PermanentAPIKeyAuth(p.APIKey))
 
+	// Validate records...
+	// All records names must be fully qualified
+	// CNAME records values must be fully qualified
+	for _, record := range records {
+		if record.Name == "@" {
+			record.Name = zone
+			continue
+		}
+
+		if !strings.HasSuffix(record.Name, "."+zone) {
+			record.Name += "." + zone
+		}
+
+		if record.Type == "CNAME" && !strings.HasSuffix(record.Value, ".") {
+			record.Value += "."
+		}
+	}
+
 	recordsByType := make(map[string][]libdns.Record)
 	for _, record := range records {
 		recordsByType[record.Type] = append(recordsByType[record.Type], record)
