@@ -1,4 +1,4 @@
-module git.mills.io/prologic/libdns-gcore
+module github.com/libdns/gcore
 
 go 1.23.1
 

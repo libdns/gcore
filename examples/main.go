@@ -6,10 +6,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"time"
 
-	gcore "git.mills.io/prologic/libdns-gcore"
-	"github.com/libdns/libdns"
+	gcore "github.com/libdns/gcore"
 )
 
 func main() {
@@ -33,63 +31,6 @@ func main() {
 	// Get all records
 
 	records, err := provider.GetRecords(context.Background(), zone)
-	if err != nil {
-		fmt.Printf("Error: %s", err.Error())
-		return
-	}
-	for _, record := range records {
-		fmt.Printf("%s %s %s\n", record.Name, record.Type, record.Value)
-	}
-
-	// Append a record
-
-	records, err = provider.AppendRecords(context.Background(), zone, []libdns.Record{
-		{
-			Name:  "_acme-challenge",
-			Type:  "TXT",
-			TTL:   300,
-			Value: "Hello World!",
-		},
-	})
-	if err != nil {
-		fmt.Printf("Error: %s", err.Error())
-		return
-	}
-
-	time.Sleep(1)
-
-	// Get all records
-
-	records, err = provider.GetRecords(context.Background(), zone)
-	if err != nil {
-		fmt.Printf("Error: %s", err.Error())
-		return
-	}
-	for _, record := range records {
-		fmt.Printf("%s %s %s\n", record.Name, record.Type, record.Value)
-	}
-
-	time.Sleep(1)
-
-	// Delete a record
-
-	records, err = provider.DeleteRecords(context.Background(), zone, []libdns.Record{
-		{
-			Name:  "_acme-challenge",
-			Type:  "TXT",
-			Value: "Hello World!",
-		},
-	})
-	if err != nil {
-		fmt.Printf("Error: %s", err.Error())
-		return
-	}
-
-	time.Sleep(1)
-
-	// Get all records
-
-	records, err = provider.GetRecords(context.Background(), zone)
 	if err != nil {
 		fmt.Printf("Error: %s", err.Error())
 		return

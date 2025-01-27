@@ -1,6 +1,6 @@
 # GCore for [`libdns`](https://github.com/libdns/libdns)
 
-[![Go Reference](https://pkg.go.dev/badge/test.svg)](https://pkg.go.dev/git.mills.io/prologic/libdns-gcore)
+[![Go Reference](https://pkg.go.dev/badge/test.svg)](https://pkg.go.dev/github.com/libdns/gcore)
 
 This package implements the [libdns interfaces](https://github.com/libdns/libdns) for GCore, allowing you to manage DNS records.
 
@@ -22,7 +22,7 @@ import (
     "os"
     "path/filepath"
 
-    gcore "git.mills.io/prologic/libdns-gcore"
+    gcore "github.com/libdns/gcore"
 )
 
 func main() {
