@@ -36,6 +36,6 @@ func main() {
 		return
 	}
 	for _, record := range records {
-		fmt.Printf("%s %s %s\n", record.Name, record.Type, record.Value)
+		fmt.Printf("%s %s %s\n", record.RR().Name, record.RR().Type, record.RR().Data)
 	}
 }
